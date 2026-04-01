@@ -19,14 +19,21 @@ export default function AuthPage() {
         if (error) throw error
       } else {
         const { data, error } = await supabase.auth.signUp({
-          email: form.email, password: form.password,
-          options: { data: { full_name: form.full_name } }
+          email: form.email,
+          password: form.password,
+          options: { data: { full_name: form.full_name, business_name: form.business_name } }
         })
         if (error) throw error
         if (data.user) {
-          await supabase.from('profiles').upsert({ id: data.user.id, full_name: form.full_name, business_name: form.business_name })
+          await supabase.from('profiles').upsert({
+            id: data.user.id,
+            full_name: form.full_name,
+            business_name: form.business_name,
+            currency: 'NGN'
+          })
         }
-        setSuccess('Account created! You can now log in.')
+        if (data.session) return
+        setSuccess('Account created! You can now sign in.')
         setMode('login')
       }
     } catch (err) {
@@ -43,12 +50,10 @@ export default function AuthPage() {
           <h1>StockFlow</h1>
           <p>Inventory & Sales Management</p>
         </div>
-
         <div className="auth-tabs">
           <button className={mode === 'login' ? 'active' : ''} onClick={() => setMode('login')}>Sign In</button>
           <button className={mode === 'signup' ? 'active' : ''} onClick={() => setMode('signup')}>Create Account</button>
         </div>
-
         <form onSubmit={submit}>
           {mode === 'signup' && (
             <>
@@ -68,12 +73,10 @@ export default function AuthPage() {
           </div>
           <div className="field">
             <label>Password</label>
-            <input name="password" type="password" value={form.password} onChange={handle} placeholder="••••••••" required />
+            <input name="password" type="password" value={form.password} onChange={handle} placeholder="••••••••" required minLength={6} />
           </div>
-
           {error && <div className="msg error">{error}</div>}
           {success && <div className="msg success">{success}</div>}
-
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account'}
           </button>
