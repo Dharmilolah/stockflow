@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useSubscription } from '../context/SubscriptionContext'
+import UpgradeBanner from '../components/UpgradeBanner'
 
 const EMPTY = { name: '', category: '', cost_price: '', selling_price: '', quantity: '', low_stock_alert: 5, unit: 'pcs', description: '' }
 
 export default function Products() {
   const { user } = useAuth()
+  const { canAddProduct, reload: reloadSub } = useSubscription()
   const [products, setProducts] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [showAddStock, setShowAddStock] = useState(null)
@@ -27,7 +30,12 @@ export default function Products() {
   const handleStock = (e) => setStockForm({ ...stockForm, [e.target.name]: e.target.value })
 
   async function saveProduct(e) {
-    e.preventDefault(); setLoading(true)
+    e.preventDefault()
+    if (!editing && !canAddProduct) {
+      alert('You have reached your product limit. Please upgrade your plan.')
+      return
+    }
+    setLoading(true)
     const payload = { ...form, user_id: user.id, cost_price: Number(form.cost_price), selling_price: Number(form.selling_price), quantity: Number(form.quantity), low_stock_alert: Number(form.low_stock_alert) }
     if (editing) {
       await supabase.from('products').update(payload).eq('id', editing)
@@ -38,7 +46,7 @@ export default function Products() {
       }
     }
     setShowModal(false); setForm(EMPTY); setEditing(null); setLoading(false)
-    load()
+    load(); reloadSub()
   }
 
   async function addStock(e) {
@@ -72,8 +80,9 @@ export default function Products() {
           <h2>Products & Inventory</h2>
           <p className="subtitle">{products.length} product{products.length !== 1 ? 's' : ''}</p>
         </div>
-        <button className="btn-primary" onClick={() => { setEditing(null); setForm(EMPTY); setShowModal(true) }}>+ Add Product</button>
+        <button className="btn-primary" onClick={() => { setEditing(null); setForm(EMPTY); setShowModal(true) }} disabled={!canAddProduct}>+ Add Product</button>
       </div>
+      <UpgradeBanner type="product" />
 
       <div className="toolbar">
         <input className="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search products..." />
