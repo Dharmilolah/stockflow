@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { useSubscription } from '../hooks/useSubscription'
+import { useSubscription } from '../context/SubscriptionContext'
 
 const NAV = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊' },
