@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useSubscription } from '../context/SubscriptionContext'
+import UpgradeBanner from '../components/UpgradeBanner'
 import { format } from 'date-fns'
 
 const EMPTY = { product_id: '', quantity_sold: 1, customer_name: '', notes: '', override_price: '' }
 
 export default function Sales() {
   const { user } = useAuth()
+  const { canRecordSale, reload: reloadSub } = useSubscription()
   const [sales, setSales] = useState([])
   const [products, setProducts] = useState([])
   const [showModal, setShowModal] = useState(false)
@@ -45,6 +48,10 @@ export default function Sales() {
   async function recordSale(e) {
     e.preventDefault()
     if (!selectedProduct) return
+    if (!canRecordSale) {
+      alert('You have reached your monthly sales limit. Please upgrade your plan.')
+      return
+    }
     if (selectedProduct.quantity < Number(form.quantity_sold)) {
       alert(`Not enough stock! Available: ${selectedProduct.quantity} ${selectedProduct.unit}`)
       return
@@ -64,7 +71,7 @@ export default function Sales() {
     })
     await supabase.from('products').update({ quantity: selectedProduct.quantity - Number(form.quantity_sold) }).eq('id', selectedProduct.id)
     setShowModal(false); setForm(EMPTY); setSelectedProduct(null); setLoading(false)
-    load()
+    load(); reloadSub()
   }
 
   async function deleteSale(sale) {
@@ -98,8 +105,9 @@ export default function Sales() {
           <h2>Sales</h2>
           <p className="subtitle">{filtered.length} transaction{filtered.length !== 1 ? 's' : ''}</p>
         </div>
-        <button className="btn-primary" onClick={() => setShowModal(true)}>+ Record Sale</button>
+        <button className="btn-primary" onClick={() => setShowModal(true)} disabled={!canRecordSale}>+ Record Sale</button>
       </div>
+      <UpgradeBanner type="sale" />
 
       <div className="toolbar">
         <div className="filter-tabs">
