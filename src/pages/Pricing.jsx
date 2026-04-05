@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-import { useSubscription, PLANS } from '../hooks/useSubscription'
+import { useSubscription, PLANS } from '../context/SubscriptionContext'
 
 // ⚠️ Replace with your actual Paystack PUBLIC key from dashboard.paystack.com
 const PAYSTACK_PUBLIC_KEY = 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
