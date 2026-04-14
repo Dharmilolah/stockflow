@@ -1,7 +1,7 @@
 # StockFlow Full Deploy — Run in PowerShell
 # Replace YOUR_GITHUB_TOKEN with your token (same one used before)
 
-$token = "your github token"
+$token = "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"
 $repo = "Dharmilolah/stockflow"
 $headers = @{
   "Authorization" = "Bearer $token"
